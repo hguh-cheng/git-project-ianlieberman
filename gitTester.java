@@ -9,11 +9,11 @@ import java.util.Arrays;
 public class gitTester {
     private static MessageDigest md;
     public static void main(String[]args) throws IOException, NoSuchAlgorithmException {
-        md = MessageDigest.getInstance("SHA-1");
+         md = MessageDigest.getInstance("SHA-1");
 
         initRepoTester();
 
-        System.out.println(newBlobTester());
+         System.out.println(newBlobTester());
 
 
         //clearDir(new File("./git"));
@@ -58,7 +58,7 @@ public class gitTester {
         File blobTests = new File("./git/blobTests");
         System.out.println(blobTests.mkdir());
 
-        String[] blobNames = new String[100];
+        String[] blobNames = new String[10];
 
         for(int i = 0; i < blobNames.length; i++) {
             File f = new File("./git/blobTests/" + i);
@@ -67,6 +67,8 @@ public class gitTester {
 
             Git.newBlob(new File("./git/blobTests/" + i));
         }
+        File directory = new File ("./git/blobTests/directory");
+
 
 
 

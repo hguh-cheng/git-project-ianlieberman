@@ -1,3 +1,4 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -11,11 +12,11 @@ import java.util.zip.ZipOutputStream;
 
 public class Git
 {
-    public static boolean doCompress;
+    public static boolean doCompress = false;
     //private static MessageDigest md;
-    public Git (boolean doCompress) {
-        this.doCompress = doCompress;
-    }
+    // public Git (boolean doCompress) {
+    //     this.doCompress = doCompress;
+    // }
 
     public static void initRepo() throws IOException {
 
@@ -63,11 +64,20 @@ public class Git
     } // Reads out files contents into byte array then hashes it with MessageDigest with SHA-1
 
 
-    public static void newBlob(File f) throws IOException, NoSuchAlgorithmException { //Hashes OG file data to make name, save new file to objects folder, zip and copy data into new file, and add blob name and OG File name into index file
+    public static void newBlob(File f, boolean tree) throws IOException, NoSuchAlgorithmException { //Hashes OG file data to make name, save new file to objects folder, zip and copy data into new file, and add blob name and OG File name into index file
 
+        
         File blob = new File ("./git/objects/" + hashFile(f));
-
         blob.createNewFile();
+        File index = new File ("./git/index");
+        BufferedWriter writer = Files.newBufferedWriter(index.toPath());
+        if(tree)
+            {
+                writer.append("tree ");
+            }
+            else{
+                writer.append("blob ");
+            }
         if(doCompress) {
             ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(blob));
 
@@ -79,13 +89,65 @@ public class Git
 
             Files.writeString(Path.of("./git/index"), blob.getName() + " " + f.getName() + '\n');
         }
-        else { // If they dont want to compress, reads bytes from OG File and converts to charsequence/string for Files.writeString
+         // If they dont want to compress, reads bytes from OG File and converts to charsequence/string for Files.writeString
+        else{
 
-            Files.writeString(Path.of(blob.getPath()), new String(Files.readAllBytes(Path.of(f.getPath())), StandardCharsets.UTF_8));
+        
+            Files.write(Path.of(blob.getPath()), new String(Files.readAllBytes(Path.of(f.getPath())), StandardCharsets.UTF_8).getBytes(), StandardOpenOption.APPEND);
 
-            Files.writeString(Path.of("./git/index"), blob.getName() + " " + f.getName() + '\n');
+            writer.append(blob.getName() + " " + f.getPath() + '\n');
+
+            writer.close();
         }
+        
     }
+    public static String newDirectoryBlob(File f) throws NoSuchAlgorithmException, IOException
+        {
+            if (!f.isDirectory())
+            {
+                newBlob(f, false);
+                return hashFile(f);
+            }
+            else{
+                File[] files = f.listFiles();
+                for (int i = 0; i < files.length; i++)
+                {
+                    newDirectoryBlob(files[i]);
+                }
+                //create tree file
+                File tree = createTree(f);
+                newBlob(tree, true);
+                return hashFile(tree);
+            }
+        }
+
+        public static File createTree(File f) throws IOException, NoSuchAlgorithmException
+        {
+            if (!f.isDirectory()) {
+                System.out.println("not a directory, can't make a tree");
+                return null;
+            } else {
+                File[] files = f.listFiles();
+                File fileName = new File ("./git/objects/tree" + f.getName());
+                if (!fileName.exists())
+                {
+                    Files.createFile(fileName.toPath());
+                }
+                BufferedWriter writer = Files.newBufferedWriter(fileName.toPath());
+                for (int i = 0; i < files.length; i++)
+                {
+                    if (files[i].isDirectory())
+                    {
+                        writer.append("tree " + newDirectoryBlob(files[i]) + " " + files[i].getName());
+                    }
+                    else{
+                        writer.append("blob " + hashFile(files[i]) + " " + files[i].getName());
+                    }
+                }
+                writer.close();
+                return fileName;
+            }
+        }
     /*References
      * http://www.sha1-online.com/sha1-java/
      * https://docs.oracle.com/javase/8/docs/api/java/security/MessageDigest.html
