@@ -102,7 +102,7 @@ public class Git
         }
         
     }
-    public static String newDirectoryBlob(Path p) throws NoSuchAlgorithmException, IOException
+    public static void newDirectoryBlob(Path p) throws NoSuchAlgorithmException, IOException
         {
             if (!p.toFile().exists())
             {
@@ -112,7 +112,7 @@ public class Git
             if (!f.isDirectory())
             {
                 newBlob(f, false);
-                return hashFile(f);
+                //return hashFile(f);
             }
             else{
                 File[] files = f.listFiles();
@@ -123,7 +123,8 @@ public class Git
                 
                 File tree = createTree(f);
                 newBlob(tree, true);
-                return hashFile(tree);
+                tree.delete();// only deletes one of them
+                //return hashFile(tree);
             }
         }
 
@@ -144,7 +145,9 @@ public class Git
                 {
                     if (files[i].isDirectory())
                     {
-                        writer.append("tree " + hashFile(createTree(files[i])) + " " + files[i].getPath() + "\n"); // this is the line that doesn't work, you can'tcreate a new Directory blob.
+                        File tree = createTree(files[i]);
+                        writer.append("tree " + hashFile(tree) + " " + files[i].getPath() + "\n"); // this is the line that doesn't work, you can'tcreate a new Directory blob.
+                        tree.delete();
                     }
                     else{
                         writer.append("blob " + hashFile(files[i]) + " " + files[i].getPath() + "\n");

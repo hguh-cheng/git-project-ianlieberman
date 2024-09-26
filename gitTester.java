@@ -28,6 +28,8 @@ public class gitTester {
         File InsideFolder = new File("./folder1/folder2");
         File InsideFile = new File("./folder1/file1.txt");
         File InsideInsideFile = new File("./folder1/folder2/file2.txt");
+        File InsideInsideFolder = new File("./folder1/folder2/folder3"); //doesn't work currently
+
         if (!OutsideFolder.exists())
         {
             OutsideFolder.mkdir();
@@ -35,6 +37,11 @@ public class gitTester {
         if (!InsideFolder.exists())
         {
             InsideFolder.mkdir();
+
+        }
+        if (!InsideInsideFolder.exists())
+        {
+            InsideInsideFolder.mkdir();
 
         }
         if (!InsideFile.exists())
