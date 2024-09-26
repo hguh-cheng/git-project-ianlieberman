@@ -24,11 +24,11 @@ public class gitTester {
     }
     public static void DirectoryTester() throws IOException, NoSuchAlgorithmException
     {
-        File OutsideFolder = new File("./folder1");
-        File InsideFolder = new File("./folder1/folder2");
-        File InsideFile = new File("./folder1/file1.txt");
-        File InsideInsideFile = new File("./folder1/folder2/file2.txt");
-        File InsideInsideFolder = new File("./folder1/folder2/folder3"); //doesn't work currently
+        File OutsideFolder = new File("./root");
+        File InsideFolder = new File("./root/bak");
+        File InsideFile = new File("./root/new.txt");
+        File InsideInsideFile = new File("./root/bak/test.txt");
+        File InsideFile2 = new File("./root/test.txt"); //doesn't work currently
 
         if (!OutsideFolder.exists())
         {
@@ -39,16 +39,19 @@ public class gitTester {
             InsideFolder.mkdir();
 
         }
-        if (!InsideInsideFolder.exists())
+        if (!InsideFile2.exists())
         {
-            InsideInsideFolder.mkdir();
+            InsideFile2.createNewFile();
+            BufferedWriter writer = Files.newBufferedWriter(InsideFile2.toPath());
+            writer.write("version 2");
+            writer.close();
 
         }
         if (!InsideFile.exists())
         {
             InsideFile.createNewFile();
             BufferedWriter writer = Files.newBufferedWriter(InsideFile.toPath());
-            writer.write("This is some gibberish \n I really hope this works");
+            writer.write("new file");
             writer.close();
 
         }
@@ -56,7 +59,7 @@ public class gitTester {
         {
             InsideInsideFile.createNewFile();
             BufferedWriter writer = Files.newBufferedWriter(InsideInsideFile.toPath());
-            writer.write("This is some worse gibberish and I really really hope this file works");
+            writer.write("version 1");
             writer.close();
         }
         Git.newDirectoryBlob(OutsideFolder.toPath());
@@ -106,7 +109,7 @@ public class gitTester {
             f.createNewFile();
             blobNames[i] = fillRandAndSHA(new File("./git/blobTests/" + i));
 
-            Git.newBlob(new File("./git/blobTests/" + i), false);
+            Git.newBlob(new File("./git/blobTests/" + i), false, new File("./git/blobTests/" + i).toPath());
         }
         File directory = new File ("./git/blobTests/directory");
 

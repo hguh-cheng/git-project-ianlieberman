@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -64,7 +65,7 @@ public class Git
     } // Reads out files contents into byte array then hashes it with MessageDigest with SHA-1
 
 
-    public static void newBlob(File f, boolean tree) throws IOException, NoSuchAlgorithmException { //Hashes OG file data to make name, save new file to objects folder, zip and copy data into new file, and add blob name and OG File name into index file
+    public static void newBlob(File f, boolean tree, Path path) throws IOException, NoSuchAlgorithmException { //Hashes OG file data to make name, save new file to objects folder, zip and copy data into new file, and add blob name and OG File name into index file
 
         
         File blob = new File ("./git/objects/" + hashFile(f));
@@ -91,12 +92,12 @@ public class Git
         }
          // If they dont want to compress, reads bytes from OG File and converts to charsequence/string for Files.writeString
         else{
-            
-
-        
             Files.write(Path.of(blob.getPath()), new String(Files.readAllBytes(Path.of(f.getPath())), StandardCharsets.UTF_8).getBytes(), StandardOpenOption.APPEND);
             String hash = hashFile(f);
-            writer.append(blob.getName() + " " + f.getPath() + '\n');
+
+            
+            
+            writer.append(blob.getName() + " " + path + '\n');
 
             writer.close();
         }
@@ -111,7 +112,7 @@ public class Git
             File f = p.toFile();
             if (!f.isDirectory())
             {
-                newBlob(f, false);
+                newBlob(f, false, f.toPath());
                 //return hashFile(f);
             }
             else{
@@ -122,7 +123,7 @@ public class Git
                 }
                 
                 File tree = createTree(f);
-                newBlob(tree, true);
+                newBlob(tree, true, f.toPath());
                 tree.delete();// only deletes one of them
                 //return hashFile(tree);
             }
@@ -135,12 +136,13 @@ public class Git
                 return null;
             } else {
                 File[] files = f.listFiles();
-                File fileName = new File ("./git/tree" + f.getName());
+
+                File fileName = new File ("./root/tree" + f.getName()); //this line is wrong, it has to add somewhere the actual fileName into the index. Have to fix the one condition where it doesn't work
                 if (!fileName.exists())
                 {
                     Files.createFile(fileName.toPath());
                 }
-                BufferedWriter writer = Files.newBufferedWriter(fileName.toPath());
+                BufferedWriter writer = Files.newBufferedWriter(fileName.toPath());//.toPath());
                 for (int i = 0; i < files.length; i++)
                 {
                     if (files[i].isDirectory())
