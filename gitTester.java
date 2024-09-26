@@ -1,3 +1,4 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,15 +13,48 @@ public class gitTester {
          md = MessageDigest.getInstance("SHA-1");
 
         initRepoTester();
+        DirectoryTester();
+         //System.out.println(newBlobTester());
 
-         System.out.println(newBlobTester());
 
 
         //clearDir(new File("./git"));
         //Files.deleteIfExists(Paths.get("./git/"));
 
     }
+    public static void DirectoryTester() throws IOException, NoSuchAlgorithmException
+    {
+        File OutsideFolder = new File("./folder1");
+        File InsideFolder = new File("./folder1/folder2");
+        File InsideFile = new File("./folder1/file1.txt");
+        File InsideInsideFile = new File("./folder1/folder2/file2.txt");
+        if (!OutsideFolder.exists())
+        {
+            OutsideFolder.mkdir();
+        }
+        if (!InsideFolder.exists())
+        {
+            InsideFolder.mkdir();
 
+        }
+        if (!InsideFile.exists())
+        {
+            InsideFile.createNewFile();
+            BufferedWriter writer = Files.newBufferedWriter(InsideFile.toPath());
+            writer.write("This is some gibberish \n I really hope this works");
+            writer.close();
+
+        }
+        if (!InsideInsideFile.exists())
+        {
+            InsideInsideFile.createNewFile();
+            BufferedWriter writer = Files.newBufferedWriter(InsideInsideFile.toPath());
+            writer.write("This is some worse gibberish and I really really hope this file works");
+            writer.close();
+        }
+        Git.newDirectoryBlob(OutsideFolder.toPath());
+
+    }
     public static boolean initRepoTester() throws IOException { //Runs initRepo and checks if the repo was initted
         File gitDir = new File("./git");
 
@@ -65,7 +99,7 @@ public class gitTester {
             f.createNewFile();
             blobNames[i] = fillRandAndSHA(new File("./git/blobTests/" + i));
 
-            Git.newBlob(new File("./git/blobTests/" + i));
+            Git.newBlob(new File("./git/blobTests/" + i), false);
         }
         File directory = new File ("./git/blobTests/directory");
 

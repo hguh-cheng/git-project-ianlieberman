@@ -70,7 +70,7 @@ public class Git
         File blob = new File ("./git/objects/" + hashFile(f));
         blob.createNewFile();
         File index = new File ("./git/index");
-        BufferedWriter writer = Files.newBufferedWriter(index.toPath());
+        BufferedWriter writer = Files.newBufferedWriter(index.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         if(tree)
             {
                 writer.append("tree ");
@@ -91,18 +91,24 @@ public class Git
         }
          // If they dont want to compress, reads bytes from OG File and converts to charsequence/string for Files.writeString
         else{
+            
 
         
             Files.write(Path.of(blob.getPath()), new String(Files.readAllBytes(Path.of(f.getPath())), StandardCharsets.UTF_8).getBytes(), StandardOpenOption.APPEND);
-
+            String hash = hashFile(f);
             writer.append(blob.getName() + " " + f.getPath() + '\n');
 
             writer.close();
         }
         
     }
-    public static String newDirectoryBlob(File f) throws NoSuchAlgorithmException, IOException
+    public static String newDirectoryBlob(Path p) throws NoSuchAlgorithmException, IOException
         {
+            if (!p.toFile().exists())
+            {
+                throw new FileNotFoundException("Directory doesn't currently exist");
+            }
+            File f = p.toFile();
             if (!f.isDirectory())
             {
                 newBlob(f, false);
@@ -112,9 +118,9 @@ public class Git
                 File[] files = f.listFiles();
                 for (int i = 0; i < files.length; i++)
                 {
-                    newDirectoryBlob(files[i]);
+                    newDirectoryBlob(files[i].toPath());
                 }
-                //create tree file
+                
                 File tree = createTree(f);
                 newBlob(tree, true);
                 return hashFile(tree);
@@ -128,7 +134,7 @@ public class Git
                 return null;
             } else {
                 File[] files = f.listFiles();
-                File fileName = new File ("./git/objects/tree" + f.getName());
+                File fileName = new File ("./git/tree" + f.getName());
                 if (!fileName.exists())
                 {
                     Files.createFile(fileName.toPath());
@@ -138,10 +144,10 @@ public class Git
                 {
                     if (files[i].isDirectory())
                     {
-                        writer.append("tree " + newDirectoryBlob(files[i]) + " " + files[i].getName());
+                        writer.append("tree " + hashFile(createTree(files[i])) + " " + files[i].getPath() + "\n"); // this is the line that doesn't work, you can'tcreate a new Directory blob.
                     }
                     else{
-                        writer.append("blob " + hashFile(files[i]) + " " + files[i].getName());
+                        writer.append("blob " + hashFile(files[i]) + " " + files[i].getPath() + "\n");
                     }
                 }
                 writer.close();
