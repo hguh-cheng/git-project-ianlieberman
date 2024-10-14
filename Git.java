@@ -11,13 +11,18 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-public class Git {
+public class Git implements GitInterface {
     public static boolean doCompress = false;
     // private static MessageDigest md;
     // public Git (boolean doCompress) {
     // this.doCompress = doCompress;
     // }
+
+    public Git() {
+    }
 
     public static void initRepo() throws IOException {
 
@@ -47,10 +52,62 @@ public class Git {
     } // Checks if a git repo exists, if not, makes essential files, redundantly
       // checking if they already exist on the way
 
-    public static String commit() throws IOException, NoSuchAlgorithmException {
-        File root = new File("root");
-        newDirectoryBlob(root.toPath());
+    public String commit(String author, String message) {
+        try {
+            StringBuilder sb = new StringBuilder();
+
+            File root = new File("root");
+            sb.append("tree: " + hashFile(root) + "\n");
+
+            File head = new File("git/HEAD");
+            sb.append("parent: " + Files.readString(head.toPath()) + "\n");
+
+            sb.append("author: " + author + "\n");
+
+            sb.append("date: " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy")) + "\n");
+
+            sb.append("message: " + message + "\n");
+
+            String hash = hashFile(sb.toString().getBytes());
+            File commitFile = new File("git/objects/" + hash);
+            FileWriter commitWriter = new FileWriter(commitFile);
+            commitWriter.write(sb.toString());
+            commitWriter.close();
+            FileWriter headWriter = new FileWriter(head, false);
+            headWriter.write(hash);
+            headWriter.close();
+
+            File index = new File("git/index");
+            index.delete();
+            index.createNewFile();
+
+            return hash;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return "";
+    }
+
+    public void stage(String filePath) {
+        try {
+            File stageFile = new File(filePath);
+            if (stageFile.isDirectory())
+                newDirectoryBlob(stageFile.toPath());
+            else
+                newBlob(stageFile, false, stageFile.getPath());
+            File root = new File("root");
+            newDirectoryBlob(root.toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void checkout(String commitHash) {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static byte[] treeToBytes(File input) throws IOException, NoSuchAlgorithmException {
@@ -114,6 +171,8 @@ public class Git {
         // copy data into new file, and add blob name and OG File name into index file
 
         File blob = new File("./git/objects/" + hashFile(f));
+        if (blob.exists())
+            return;
         if (!tree) {
             blob.createNewFile();
         }

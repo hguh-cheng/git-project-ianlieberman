@@ -16,7 +16,15 @@ public class gitTester {
         md = MessageDigest.getInstance("SHA-1");
 
         initRepoTester();
+        // DirectoryTester();
+        commitTester();
 
+        clearDir(new File("git"));
+        clearDir(new File("root"));
+    }
+
+    public static void commitTester() throws IOException, NoSuchAlgorithmException {
+        Git git = new Git();
         File OutsideFolder = new File("./root");
         File InsideFolder = new File("./root/bak");
         File InsideFile = new File("./root/new.txt");
@@ -51,15 +59,18 @@ public class gitTester {
             writer.close();
         }
 
-        Git.commit();
-        // System.out.println(newBlobTester());
+        String c1 = git.commit("Hugh", "harro");
 
-        // clearDir(new File("./git"));
-        // Files.deleteIfExists(Paths.get("./git/"));
-
+        File ExtraFile = new File("./root/omg.txt");
+        ExtraFile.createNewFile();
+        git.stage(ExtraFile.getPath());
+        String c2 = git.commit("Hugh", "OHMYGOODNESS");
+        if (c1 != c2)
+            System.out.println("commit working");
     }
 
     public static void DirectoryTester() throws IOException, NoSuchAlgorithmException {
+
         File OutsideFolder = new File("./root");
         File InsideFolder = new File("./root/bak");
         File InsideFile = new File("./root/new.txt");
@@ -107,7 +118,6 @@ public class gitTester {
                 System.out.println(f.getName());
                 // f.delete();
             }
-            // gitDir.delete();
             System.out.println("initRepo worked");
             return true;
         }
